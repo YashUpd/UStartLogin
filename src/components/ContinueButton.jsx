@@ -11,18 +11,18 @@ const ContinueButton = ({onPress}) => {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#9ca3af',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 8, 
+    backgroundColor: '#0C2353',
+    paddingVertical: 11,
+    paddingHorizontal: 140,
+    borderRadius: 7, 
     width: '100%',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 140,
   },
   buttonText: {
     color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
   },
 });
 

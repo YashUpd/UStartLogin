@@ -20,8 +20,8 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   image: {
-    width: 200,
-    height: 160,
+    width: 232,
+    height: 232,
   },
 });
 

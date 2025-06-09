@@ -7,13 +7,17 @@ const resources = {
     translation: {
       language_english: 'English',
       language_hindi: 'Hindi',
-      verify_number: 'Verify Your Number',
+      verify_number: 'VERIFY YOUR NUMBER',
       enter_phone: 'Please enter your country & your phone number to register',
       error_empty: 'Please enter your phone number',
       error_invalid: 'Please enter a valid phone number',
       verification_sending: 'Sending verification code to {{dialCode}} {{phoneNumber}}',
       disclaimer:
         'The registered mobile number will be used for ride-related communications. You shall receive an SMS for verification code.',
+      verification_code: 'VERIFICATION CODE',
+      otp_sent_message: 'Please wait. We will auto-verify the OTP sent to {{dialCode}} {{phoneNumber}}',
+      resend_otp: 'Resend OTP',
+      resend_otp_in: 'Resend OTP in seconds',
     },
   },
   hi: {

@@ -59,7 +59,6 @@ const PhoneVerificationScreen = () => {
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.content}>
-        {/* Back button for navigation */}
         <View style={styles.headerRow}>
           <TouchableOpacity 
             style={styles.backButton}
@@ -191,9 +190,9 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1e3a8a',
+    fontSize: 26,
+    fontWeight: 700,
+    color: '#0C2353',
     marginTop: 40,
     marginBottom: 16,
     textAlign: 'center',
