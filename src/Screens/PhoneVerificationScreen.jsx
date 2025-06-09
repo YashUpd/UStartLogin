@@ -8,14 +8,15 @@ import {
   ScrollView,
 } from 'react-native';
 import {useTranslation} from 'react-i18next';
-
+import {useNavigation} from '@react-navigation/native';
 import PhoneIllustration from '../components/PhoneIllustration';
 import CountryPicker from '../components/CountryPicker';
 import PhoneInput from '../components/PhoneInput';
 import ContinueButton from '../components/ContinueButton';
 
-const PhoneVerificationScreen = ({navigation}) => {
+const PhoneVerificationScreen = () => {
   const { t, i18n } = useTranslation();
+  const navigation = useNavigation();
 
   const [selectedCountry, setSelectedCountry] = useState({
     name: 'India',
@@ -37,6 +38,7 @@ const PhoneVerificationScreen = ({navigation}) => {
       return;
     }
 
+    // Navigate to verification screen with phone details
     navigation.navigate('VerificationCode', {
       phoneNumber: phoneNumber,
       dialCode: selectedCountry.dialCode,
