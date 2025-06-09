@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ScrollView,
 } from 'react-native';
 import {useTranslation} from 'react-i18next';
@@ -15,7 +14,8 @@ import PhoneInput from '../components/PhoneInput';
 import ContinueButton from '../components/ContinueButton';
 
 const PhoneVerificationScreen = () => {
-  const { t, i18n } = useTranslation();
+  const {t, i18n} = useTranslation();
+  console.log('Current language:', i18n.language);
   const navigation = useNavigation();
 
   const [selectedCountry, setSelectedCountry] = useState({
@@ -27,18 +27,13 @@ const PhoneVerificationScreen = () => {
 
   const [phoneNumber, setPhoneNumber] = useState('');
 
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.language);
+
+  const isPhoneValid =
+    phoneNumber.trim().length === 10 && /^\d{10}$/.test(phoneNumber.trim());
+
   const handleContinue = () => {
-    if (!phoneNumber.trim()) {
-      Alert.alert('Error', t('error_empty'));
-      return;
-    }
-
-    if (phoneNumber.length < 10) {
-      Alert.alert('Error', t('error_invalid'));
-      return;
-    }
-
-    // Navigate to verification screen with phone details
+    // Only called if valid, so no warning needed
     navigation.navigate('VerificationCode', {
       phoneNumber: phoneNumber,
       dialCode: selectedCountry.dialCode,
@@ -46,67 +41,59 @@ const PhoneVerificationScreen = () => {
     });
   };
 
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
+  const changeLanguage = lng => {
+    if (i18n.language !== lng) {
+      i18n.changeLanguage(lng).then(() => {
+        setCurrentLanguage(lng); // force re-render
+      });
+    }
   };
 
-  const currentLanguage = i18n.language;
-
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{flexGrow: 1, alignItems: 'center'}}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View style={styles.content}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>←</Text>
+    <View style={styles.container}>
+      <View style={styles.headerRow}>
+        <View style={{flex: 1}} />
+        <View style={styles.langTogglePill}>
+          <TouchableOpacity
+            style={[
+              styles.langToggleButton,
+              currentLanguage === 'en' && styles.langToggleButtonActive,
+              {borderTopLeftRadius: 16, borderBottomLeftRadius: 16},
+            ]}
+            onPress={() => changeLanguage('en')}>
+            <Text
+              style={[
+                styles.langToggleText,
+                currentLanguage === 'en' && styles.langToggleTextActive,
+              ]}>
+              {t('language_english')}
+            </Text>
           </TouchableOpacity>
-          
-          <View style={styles.header}>
-            <TouchableOpacity
+          <TouchableOpacity
+            style={[
+              styles.langToggleButton,
+              currentLanguage === 'hi' && styles.langToggleButtonActive,
+              {borderTopRightRadius: 16, borderBottomRightRadius: 16},
+            ]}
+            onPress={() => changeLanguage('hi')}>
+            <Text
               style={[
-                styles.languageText,
-                currentLanguage === 'en' && styles.activeLanguage,
-              ]}
-              onPress={() => changeLanguage('en')}>
-              <Text
-                style={[
-                  styles.languageLabel,
-                  currentLanguage === 'en' && styles.activeText,
-                ]}>
-                {t('language_english')}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.languageHindi,
-                currentLanguage === 'hi' && styles.activeLanguage,
-              ]}
-              onPress={() => changeLanguage('hi')}>
-              <Text
-                style={[
-                  styles.languageLabel,
-                  currentLanguage === 'hi' && styles.activeText,
-                ]}>
-                {t('language_hindi')}
-              </Text>
-            </TouchableOpacity>
-          </View>
+                styles.langToggleText,
+                currentLanguage === 'hi' && styles.langToggleTextActive,
+              ]}>
+              {t('language_hindi')}
+            </Text>
+          </TouchableOpacity>
         </View>
-
+      </View>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="always">
         <PhoneIllustration />
 
         <Text style={styles.title}>{t('verify_number')}</Text>
 
-        <Text style={styles.subtitle}>
-          {t('enter_phone')}
-        </Text>
+        <Text style={styles.subtitle}>{t('enter_phone')}</Text>
 
         <View style={styles.inputContainer}>
           <CountryPicker
@@ -121,13 +108,11 @@ const PhoneVerificationScreen = () => {
           />
         </View>
 
-        <Text style={styles.disclaimer}>
-          {t('disclaimer')}
-        </Text>
+        <Text style={styles.disclaimer}>{t('disclaimer')}</Text>
 
-        <ContinueButton onPress={handleContinue} />
-      </View>
-    </ScrollView>
+        <ContinueButton onPress={handleContinue} disabled={!isPhoneValid} />
+      </ScrollView>
+    </View>
   );
 };
 
@@ -149,48 +134,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f3f4f6',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  backButtonText: {
-    fontSize: 20,
-    color: '#1e3a8a',
-    fontWeight: 'bold',
-  },
-  header: {
+  langTogglePill: {
     flexDirection: 'row',
+    backgroundColor: '#e5e7eb',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    overflow: 'hidden',
+    marginRight: 16,
+    marginTop: 8,
   },
-  languageText: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-    marginRight: 8,
+  langToggleButton: {
+    paddingHorizontal: 18,
+    paddingVertical: 7,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  languageHindi: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-  },
-  activeLanguage: {
+  langToggleButtonActive: {
     backgroundColor: '#1e3a8a',
   },
-  languageLabel: {
-    fontSize: 12,
+  langToggleText: {
+    color: '#1e3a8a',
     fontWeight: '500',
-    color: '#6b7280',
+    fontSize: 12,
   },
-  activeText: {
-    color: '#ffffff',
+  langToggleTextActive: {
+    color: '#fff',
   },
   title: {
-    fontSize: 26,
+    fontFamily: 'Poppins',
+    fontSize: 24,
     fontWeight: 700,
     color: '#0C2353',
     marginTop: 40,
@@ -198,10 +172,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   subtitle: {
+    fontFamily: 'Poppins',
     fontSize: 16,
-    color: '#6b7280',
+    color: '#000000',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 20,
     marginBottom: 40,
     paddingHorizontal: 20,
   },

@@ -12,7 +12,6 @@ import {useTranslation} from 'react-i18next';
 
 // Components
 import VerificationIllustration from '../components/VerificationIllustration';
-import OTPInput from '../components/OTPInput';
 import ContinueButton from '../components/ContinueButton';
 
 const VerificationCodeScreen = ({route}) => {
@@ -25,6 +24,9 @@ const VerificationCodeScreen = ({route}) => {
   const [otp, setOtp] = useState(['', '', '', '']);
   const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.language);
+
+  const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
   // Timer effect
   useEffect(() => {
@@ -39,13 +41,33 @@ const VerificationCodeScreen = ({route}) => {
   }, [timer]);
 
   const handleOTPChange = (value, index) => {
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-
-    // Auto-focus next input
-    if (value && index < 3) {
-      // Focus next input (you might need refs for this)
+    const numeric = value.replace(/[^0-9]/g, '');
+    if (numeric.length === 0) {
+      // If deleting, update and focus previous
+      const newOtp = [...otp];
+      newOtp[index] = '';
+      setOtp(newOtp);
+      if (index > 0) {
+        inputRefs[index - 1].current.focus();
+      }
+      return;
+    }
+    if (numeric.length === 1) {
+      const newOtp = [...otp];
+      newOtp[index] = numeric;
+      setOtp(newOtp);
+      if (index < 3) {
+        inputRefs[index + 1].current.focus();
+      }
+    } else if (numeric.length > 1) {
+      // Paste or fast typing: fill all
+      const arr = numeric.split('').slice(0, 4);
+      setOtp(arr.concat(Array(4 - arr.length).fill('')));
+      if (arr.length < 4) {
+        inputRefs[arr.length].current.focus();
+      } else {
+        inputRefs[3].current.blur();
+      }
     }
   };
 
@@ -70,10 +92,10 @@ const VerificationCodeScreen = ({route}) => {
   };
 
   const changeLanguage = lng => {
-    i18n.changeLanguage(lng);
+    i18n.changeLanguage(lng).then(() => {
+      setCurrentLanguage(lng); // force re-render
+    });
   };
-
-  const currentLanguage = i18n.language;
 
   return (
     <ScrollView
@@ -82,35 +104,38 @@ const VerificationCodeScreen = ({route}) => {
       keyboardShouldPersistTaps="handled">
       <View style={styles.content}>
         <View style={styles.header}>
-          <TouchableOpacity
-            style={[
-              styles.languageText,
-              currentLanguage === 'en' && styles.activeLanguage,
-            ]}
-            onPress={() => changeLanguage('en')}>
-            <Text
+          <View style={styles.langTogglePill}>
+            <TouchableOpacity
               style={[
-                styles.languageLabel,
-                currentLanguage === 'en' && styles.activeText,
-              ]}>
-              {t('language_english')}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.languageHindi,
-              currentLanguage === 'hi' && styles.activeLanguage,
-            ]}
-            onPress={() => changeLanguage('hi')}>
-            <Text
+                styles.langToggleButton,
+                currentLanguage === 'en' && styles.langToggleButtonActive,
+                {borderTopLeftRadius: 16, borderBottomLeftRadius: 16},
+              ]}
+              onPress={() => changeLanguage('en')}>
+              <Text
+                style={[
+                  styles.langToggleText,
+                  currentLanguage === 'en' && styles.langToggleTextActive,
+                ]}>
+                {t('language_english')}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               style={[
-                styles.languageLabel,
-                currentLanguage === 'hi' && styles.activeText,
-              ]}>
-              {t('language_hindi')}
-            </Text>
-          </TouchableOpacity>
+                styles.langToggleButton,
+                currentLanguage === 'hi' && styles.langToggleButtonActive,
+                {borderTopRightRadius: 16, borderBottomRightRadius: 16},
+              ]}
+              onPress={() => changeLanguage('hi')}>
+              <Text
+                style={[
+                  styles.langToggleText,
+                  currentLanguage === 'hi' && styles.langToggleTextActive,
+                ]}>
+                {t('language_hindi')}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <VerificationIllustration />
@@ -126,11 +151,21 @@ const VerificationCodeScreen = ({route}) => {
 
         <View style={styles.otpContainer}>
           {otp.map((digit, index) => (
-            <OTPInput
+            <TextInput
               key={index}
+              ref={inputRefs[index]}
+              style={[styles.otpInput, digit ? styles.filledInput : null]}
               value={digit}
               onChangeText={value => handleOTPChange(value, index)}
-              index={index}
+              keyboardType="numeric"
+              maxLength={index === 0 ? 4 : 1}
+              textAlign="center"
+              selectTextOnFocus
+              blurOnSubmit={false}
+              onFocus={() => {
+                // Only focus, do not call .select()
+                inputRefs[index].current && inputRefs[index].current.focus();
+              }}
             />
           ))}
         </View>
@@ -169,29 +204,33 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     marginBottom: 40,
   },
-  languageText: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-    marginRight: 8,
+  langTogglePill: {
+    flexDirection: 'row',
+    backgroundColor: '#e5e7eb',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    overflow: 'hidden',
+    alignSelf: 'flex-end',
+    marginBottom: 40,
   },
-  languageHindi: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
+  langToggleButton: {
+    paddingHorizontal: 18,
+    paddingVertical: 7,
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  activeLanguage: {
+  langToggleButtonActive: {
     backgroundColor: '#1e3a8a',
   },
-  languageLabel: {
-    fontSize: 12,
+  langToggleText: {
+    color: '#1e3a8a',
     fontWeight: '500',
-    color: '#6b7280',
+    fontSize: 12,
   },
-  activeText: {
-    color: '#ffffff',
+  langToggleTextActive: {
+    color: '#fff',
   },
   title: {
     fontSize: 24,
@@ -214,6 +253,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '80%',
     marginBottom: 32,
+  },
+  otpInput: {
+    width: 50,
+    height: 50,
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1e3a8a',
+    backgroundColor: '#ffffff',
+    textAlign: 'center',
+    marginHorizontal: 4,
+  },
+  filledInput: {
+    borderColor: '#1e3a8a',
+    backgroundColor: '#f8fafc',
   },
   resendContainer: {
     marginBottom: 40,
