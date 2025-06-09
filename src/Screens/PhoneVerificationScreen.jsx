@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     borderColor: '#d1d5db',
     overflow: 'hidden',
     marginRight: 16,
-    marginTop: 8,
+    marginTop: 32, // increased from 8 to 32 for better visibility
   },
   langToggleButton: {
     paddingHorizontal: 18,

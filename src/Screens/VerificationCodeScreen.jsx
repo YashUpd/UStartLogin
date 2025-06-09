@@ -24,8 +24,6 @@ const VerificationCodeScreen = ({route}) => {
   const [otp, setOtp] = useState(['', '', '', '']);
   const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
-  const [currentLanguage, setCurrentLanguage] = useState(i18n.language);
-
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
   // Timer effect
@@ -91,10 +89,14 @@ const VerificationCodeScreen = ({route}) => {
     }
   };
 
+  const [_, forceRerender] = useState(0);
+
   const changeLanguage = lng => {
-    i18n.changeLanguage(lng).then(() => {
-      setCurrentLanguage(lng); // force re-render
-    });
+    if (i18n.language !== lng) {
+      i18n.changeLanguage(lng).then(() => {
+        forceRerender(x => x + 1); // force re-render
+      });
+    }
   };
 
   return (
@@ -102,42 +104,42 @@ const VerificationCodeScreen = ({route}) => {
       style={styles.container}
       contentContainerStyle={{flexGrow: 1, alignItems: 'center'}}
       keyboardShouldPersistTaps="handled">
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <View style={styles.langTogglePill}>
-            <TouchableOpacity
+      <View style={styles.langToggleRow}>
+        <View style={{flex: 1}} />
+        <View style={styles.langTogglePill}>
+          <TouchableOpacity
+            style={[
+              styles.langToggleButton,
+              i18n.language === 'en' && styles.langToggleButtonActive,
+              {borderTopLeftRadius: 16, borderBottomLeftRadius: 16},
+            ]}
+            onPress={() => changeLanguage('en')}>
+            <Text
               style={[
-                styles.langToggleButton,
-                currentLanguage === 'en' && styles.langToggleButtonActive,
-                {borderTopLeftRadius: 16, borderBottomLeftRadius: 16},
-              ]}
-              onPress={() => changeLanguage('en')}>
-              <Text
-                style={[
-                  styles.langToggleText,
-                  currentLanguage === 'en' && styles.langToggleTextActive,
-                ]}>
-                {t('language_english')}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+                styles.langToggleText,
+                i18n.language === 'en' && styles.langToggleTextActive,
+              ]}>
+              {t('language_english')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.langToggleButton,
+              i18n.language === 'hi' && styles.langToggleButtonActive,
+              {borderTopRightRadius: 16, borderBottomRightRadius: 16},
+            ]}
+            onPress={() => changeLanguage('hi')}>
+            <Text
               style={[
-                styles.langToggleButton,
-                currentLanguage === 'hi' && styles.langToggleButtonActive,
-                {borderTopRightRadius: 16, borderBottomRightRadius: 16},
-              ]}
-              onPress={() => changeLanguage('hi')}>
-              <Text
-                style={[
-                  styles.langToggleText,
-                  currentLanguage === 'hi' && styles.langToggleTextActive,
-                ]}>
-                {t('language_hindi')}
-              </Text>
-            </TouchableOpacity>
-          </View>
+                styles.langToggleText,
+                i18n.language === 'hi' && styles.langToggleTextActive,
+              ]}>
+              {t('language_hindi')}
+            </Text>
+          </TouchableOpacity>
         </View>
-
+      </View>
+      <View style={styles.content}>
         <VerificationIllustration />
 
         <Text style={styles.title}>{t('verification_code')}</Text>
@@ -182,7 +184,7 @@ const VerificationCodeScreen = ({route}) => {
           )}
         </View>
 
-        <ContinueButton onPress={handleContinue} />
+        <ContinueButton onPress={handleContinue} style={{marginTop: 110}} />
       </View>
     </ScrollView>
   );
@@ -199,20 +201,22 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     alignItems: 'center',
   },
-  header: {
+  langToggleRow: {
     flexDirection: 'row',
-    alignSelf: 'flex-end',
-    marginBottom: 40,
+    width: '100%',
+    marginTop: 16,
+    marginBottom: -16,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
   },
   langTogglePill: {
     flexDirection: 'row',
     backgroundColor: '#e5e7eb',
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#d1d5db',
     overflow: 'hidden',
-    alignSelf: 'flex-end',
-    marginBottom: 40,
+    marginRight: 16,
   },
   langToggleButton: {
     paddingHorizontal: 18,

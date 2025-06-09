@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     width: '100%',
     alignItems: 'center',
-    marginTop: 140,
+    marginTop: 110,
     opacity: 1,
   },
   buttonDisabled: {
